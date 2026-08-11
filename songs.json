@@ -1,0 +1,12 @@
+[
+  {
+    "id": 1,
+    "title": "Terhebat",
+    "artist": "Covers Hololive Indonesia",
+    "album": "Hololive",
+    "genre": "Happy",
+    "popular": true,
+    "cover": "covers/terhebat.jpg",
+    "src": "music/terhebat_covers_holoid.mp3"
+  }
+]
