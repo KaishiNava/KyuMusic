@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>KyuMusic - Web Player Premium</title>
+  <title>KyuMusic - Full Spotify Experience</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
@@ -22,24 +22,27 @@
     .bar:nth-child(3) { animation-delay: 0.3s; }
     @keyframes bounce { 0%, 100% { height: 4px; } 50% { height: 16px; } }
 
-    /* Modal Animation */
-    .modal-slide-up {
-      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
+    .modal-slide-up { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
   </style>
 </head>
 <body class="bg-black text-white font-sans h-screen flex flex-col overflow-hidden select-none">
 
+  <!-- TOAST NOTIFICATION -->
+  <div id="toast" class="fixed top-5 right-5 bg-[#1ed760] text-black font-bold px-4 py-2.5 rounded-full shadow-2xl z-[150] transition-all opacity-0 pointer-events-none translate-y-[-10px] text-xs sm:text-sm flex items-center gap-2">
+    <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+    <span id="toast-message">Notifikasi</span>
+  </div>
+
   <div class="flex flex-1 overflow-hidden p-0 sm:p-2 gap-2">
     
-    <!-- SIDEBAR -->
-    <aside class="w-60 lg:w-64 bg-[#121212] rounded-xl p-4 flex-col gap-6 hidden md:flex shrink-0">
+    <!-- SIDEBAR LEFT -->
+    <aside class="w-60 lg:w-64 bg-[#121212] rounded-xl p-4 flex-col gap-5 hidden md:flex shrink-0">
       <div class="flex items-center gap-3 text-[#1ed760] px-2">
         <i data-lucide="disc-3" class="w-8 h-8"></i>
-        <span class="text-xl font-bold tracking-wider text-white">KyuMusic</span>
+        <span class="text-xl font-extrabold tracking-wider text-white">KyuMusic</span>
       </div>
 
-      <nav class="flex flex-col gap-2 text-gray-400 font-semibold text-sm">
+      <nav class="flex flex-col gap-1 text-gray-400 font-semibold text-sm">
         <button onclick="switchTab('home')" id="nav-desktop-home" class="nav-btn flex items-center gap-4 text-white bg-[#282828] px-3 py-2.5 rounded-lg transition w-full text-left">
           <i data-lucide="home" class="w-5 h-5"></i> Utama
         </button>
@@ -51,10 +54,16 @@
         </button>
       </nav>
 
-      <div class="border-t border-gray-800/80 pt-4 flex-1 overflow-y-auto">
-        <div class="text-xs text-gray-400 font-bold uppercase tracking-widest px-2 mb-3">Favorit Kamu</div>
-        <ul id="favorites-list-sidebar" class="space-y-1 text-sm text-gray-400">
-          <li class="px-2 py-1 text-xs text-gray-600">Belum ada lagu disukai</li>
+      <div class="border-t border-gray-800/80 pt-4 flex-1 overflow-y-auto flex flex-col gap-2">
+        <div class="flex justify-between items-center px-2 mb-1">
+          <span class="text-xs text-gray-400 font-bold uppercase tracking-widest">Playlist Kamu</span>
+          <button onclick="createNewPlaylist()" class="text-gray-400 hover:text-white transition"><i data-lucide="plus" class="w-4 h-4"></i></button>
+        </div>
+        
+        <ul id="playlist-list-sidebar" class="space-y-1 text-sm text-gray-400">
+          <li onclick="switchTab('library')" class="hover:text-white cursor-pointer truncate px-2 py-1.5 rounded-md hover:bg-[#1f1f1f] transition flex items-center gap-2">
+            <i data-lucide="heart" class="w-4 h-4 text-red-500 fill-red-500"></i> Lagu Disukai
+          </li>
         </ul>
       </div>
     </aside>
@@ -66,12 +75,24 @@
       <header class="flex justify-between items-center gap-3 mb-6 sticky top-0 bg-[#121212]/90 backdrop-blur-md p-2 -mx-2 z-20 rounded-lg border border-white/5">
         <div class="flex items-center gap-3 bg-[#242424] px-3.5 py-2 rounded-full w-full max-w-md focus-within:ring-2 focus-within:ring-[#1ed760]">
           <i data-lucide="search" class="w-4 h-4 text-gray-400 shrink-0"></i>
-          <input type="text" id="global-search-input" onkeyup="handleSearch()" placeholder="Cari judul lagu, artis, atau album..." class="bg-transparent border-none outline-none text-xs sm:text-sm w-full text-white placeholder-gray-400">
+          <input type="text" id="global-search-input" onkeyup="handleSearch()" placeholder="Apa yang ingin kamu dengarkan?" class="bg-transparent border-none outline-none text-xs sm:text-sm w-full text-white placeholder-gray-400">
         </div>
-        <button class="bg-[#1ed760] text-black font-extrabold px-4 py-2 rounded-full hover:scale-105 active:scale-95 transition text-xs sm:text-sm shrink-0">
-          Profil
-        </button>
+        <div class="flex items-center gap-2">
+          <button onclick="toggleQueueDrawer()" class="p-2 text-gray-400 hover:text-white transition rounded-full hover:bg-white/10" title="Antrean Lagu">
+            <i data-lucide="list-music" class="w-5 h-5"></i>
+          </button>
+          <button class="bg-[#1ed760] text-black font-extrabold px-4 py-2 rounded-full hover:scale-105 active:scale-95 transition text-xs sm:text-sm shrink-0">
+            Profil
+          </button>
+        </div>
       </header>
+
+      <!-- Category Badges -->
+      <div class="flex gap-2 mb-6 overflow-x-auto pb-2">
+        <button class="bg-white text-black px-3.5 py-1.5 rounded-full text-xs font-bold shrink-0">Semua</button>
+        <button class="bg-[#2a2a2a] hover:bg-[#333] text-white px-3.5 py-1.5 rounded-full text-xs font-semibold shrink-0 transition">Musik</button>
+        <button class="bg-[#2a2a2a] hover:bg-[#333] text-white px-3.5 py-1.5 rounded-full text-xs font-semibold shrink-0 transition">Podcast</button>
+      </div>
 
       <!-- TAB 1: UTAMA -->
       <section id="tab-home" class="tab-content">
@@ -79,7 +100,7 @@
           <div class="z-10">
             <span class="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-emerald-400 bg-emerald-950/60 px-2.5 py-1 rounded-full border border-emerald-500/20">Playlist Unggulan</span>
             <h1 class="text-2xl sm:text-4xl font-extrabold mt-2 mb-1 text-white tracking-tight">Populer Minggu Ini</h1>
-            <p class="text-gray-300 text-xs sm:text-sm line-clamp-1">Dengarkan musik paling nge-hits di KyuMusic.</p>
+            <p class="text-gray-300 text-xs sm:text-sm line-clamp-1">Dengarkan musik paling populer di KyuMusic.</p>
           </div>
         </div>
 
@@ -107,6 +128,18 @@
       </section>
 
     </main>
+
+    <!-- RIGHT DRAWER: QUEUE / ANTREAN (SPOTIFY STYLE) -->
+    <aside id="queue-drawer" class="w-72 bg-[#121212] rounded-xl p-4 flex-col gap-4 hidden lg:flex shrink-0 border-l border-white/5">
+      <div class="flex justify-between items-center border-b border-gray-800 pb-3">
+        <h3 class="font-bold text-sm flex items-center gap-2"><i data-lucide="list-music" class="w-4 h-4 text-[#1ed760]"></i> Antrean Lagu</h3>
+        <button onclick="clearQueue()" class="text-xs text-gray-400 hover:text-white">Bersihkan</button>
+      </div>
+      <div id="queue-list-container" class="flex-1 overflow-y-auto space-y-2 text-xs">
+        <p class="text-gray-500 text-center py-4">Antrean masih kosong.</p>
+      </div>
+    </aside>
+
   </div>
 
   <!-- MOBILE NAVIGATION -->
@@ -125,10 +158,9 @@
     </button>
   </nav>
 
-  <!-- MINI PLAYER BAR (Klik untuk Buka Fullscreen Player) -->
+  <!-- MINI PLAYER BAR -->
   <footer id="player-bar" class="hidden fixed bottom-[57px] md:bottom-0 left-0 right-0 h-16 sm:h-20 bg-[#181818]/95 backdrop-blur-lg border-t border-white/10 px-3 sm:px-4 flex items-center justify-between z-50 shadow-2xl cursor-pointer">
     
-    <!-- Info Lagu (Klik area ini untuk Buka Modal Player) -->
     <div onclick="openFullPlayer()" class="flex items-center gap-2.5 sm:gap-3 w-1/3 sm:w-1/4 min-w-0 flex-1">
       <div class="w-10 h-10 sm:w-12 sm:h-12 bg-[#282828] rounded-md shrink-0 flex items-center justify-center overflow-hidden shadow">
         <img id="player-cover" src="" class="w-full h-full object-cover">
@@ -160,23 +192,25 @@
       </div>
     </div>
 
-    <!-- Volume & Status -->
+    <!-- Right Controls -->
     <div onclick="event.stopPropagation()" class="hidden md:flex items-center justify-end gap-3 w-1/4">
+      <button onclick="toggleLyricsMode()" class="text-gray-400 hover:text-white transition" title="Lirik Lagu"><i data-lucide="mic-2" class="w-4 h-4"></i></button>
       <div id="playing-indicator" class="hidden flex items-end gap-1 h-3.5 mr-2">
         <div class="bar"></div>
         <div class="bar"></div>
         <div class="bar"></div>
       </div>
-      <i data-lucide="volume-2" class="w-4 h-4 text-gray-400"></i>
+      <button onclick="toggleMute()" id="mute-btn" class="text-gray-400 hover:text-white transition">
+        <i data-lucide="volume-2" class="w-4 h-4" id="volume-icon"></i>
+      </button>
       <input type="range" id="volume-bar" class="w-20 h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-white" value="80">
     </div>
 
   </footer>
 
-  <!-- FULLSCREEN MUSIC PLAYER MODAL (Mirip Gambar) -->
+  <!-- FULLSCREEN PLAYER MODAL WITH LYRICS MODE -->
   <div id="full-player-modal" class="fixed inset-0 bg-[#0f1419] z-[100] flex flex-col justify-between p-6 translate-y-full modal-slide-up">
     
-    <!-- Top Header Modal -->
     <div class="flex justify-between items-center text-white">
       <button onclick="closeFullPlayer()" class="text-gray-300 hover:text-white p-2">
         <i data-lucide="chevron-down" class="w-7 h-7"></i>
@@ -185,26 +219,35 @@
         <h3 id="full-title" class="font-bold text-sm sm:text-base truncate">Judul Lagu</h3>
         <p id="full-artist" class="text-xs text-gray-400 truncate">Nama Penyanyi</p>
       </div>
-      <button class="text-gray-400 hover:text-white p-2">
-        <i data-lucide="more-vertical" class="w-6 h-6"></i>
+      <button onclick="toggleLyricsMode()" class="text-gray-400 hover:text-[#1ed760] transition p-2" title="Mode Lirik">
+        <i data-lucide="mic-2" class="w-6 h-6"></i>
       </button>
     </div>
 
-    <!-- Volume Control Top (Mirip Screenshot) -->
     <div class="flex items-center gap-3 px-4 my-2">
       <i data-lucide="volume-2" class="w-5 h-5 text-gray-400 shrink-0"></i>
       <input type="range" id="full-volume-bar" class="w-full h-1 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-white" value="80">
     </div>
 
-    <!-- Central Lyrics / Album Cover Display -->
-    <div class="flex-1 flex flex-col items-center justify-center my-4">
-      <div class="w-48 h-48 sm:w-64 sm:h-64 rounded-2xl overflow-hidden shadow-2xl mb-6 bg-gray-800 border border-white/10">
-        <img id="full-cover" src="" class="w-full h-full object-cover">
+    <!-- Lyrics vs Cover Container -->
+    <div class="flex-1 flex flex-col items-center justify-center my-4 overflow-hidden relative">
+      <!-- Album Cover View -->
+      <div id="modal-cover-view" class="flex flex-col items-center justify-center">
+        <div class="w-48 h-48 sm:w-64 sm:h-64 rounded-2xl overflow-hidden shadow-2xl mb-6 bg-gray-800 border border-white/10">
+          <img id="full-cover" src="" class="w-full h-full object-cover">
+        </div>
       </div>
-      <p id="full-lyrics-placeholder" class="text-gray-400 font-medium text-base sm:text-lg">Tidak ada lirik</p>
+
+      <!-- Lyrics View Container -->
+      <div id="modal-lyrics-view" class="hidden w-full h-full overflow-y-auto text-center px-4 py-6 flex flex-col gap-4">
+        <p class="text-emerald-400 text-sm font-semibold uppercase tracking-widest">Lirik Musik</p>
+        <div id="lyrics-text-content" class="text-lg sm:text-2xl font-extrabold text-gray-300 leading-relaxed space-y-4">
+          <p>Lirik belum tersedia untuk lagu ini.</p>
+        </div>
+      </div>
     </div>
 
-    <!-- Progress Bar & Time -->
+    <!-- Progress Bar -->
     <div class="w-full px-2 mb-4">
       <input type="range" id="full-progress-bar" value="0" class="w-full h-1 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-white">
       <div class="flex justify-between text-xs text-gray-400 mt-2 font-mono">
@@ -213,7 +256,7 @@
       </div>
     </div>
 
-    <!-- Player Main Controls -->
+    <!-- Player Controls -->
     <div class="flex items-center justify-between px-4 mb-6">
       <button onclick="toggleRepeat()" id="full-repeat-btn" class="text-gray-400 hover:text-white transition">
         <i data-lucide="repeat" class="w-6 h-6"></i>
@@ -232,22 +275,16 @@
       </button>
     </div>
 
-    <!-- Bottom Actions (Heart, Delete, Share, Playlist) -->
+    <!-- Action Buttons -->
     <div class="flex items-center justify-around text-gray-400 pt-2 border-t border-white/5">
       <button onclick="toggleLikeCurrentSong()" id="full-like-btn" class="hover:text-white transition">
         <i data-lucide="heart" class="w-6 h-6"></i>
       </button>
-      
-      <!-- Tombol Hapus (Disabled secara default untuk lagu online/streaming) -->
       <button onclick="handleDeleteOfflineSong()" id="full-delete-btn" class="text-gray-600 cursor-not-allowed transition" title="Hanya lagu offline yang bisa dihapus">
         <i data-lucide="trash-2" class="w-6 h-6"></i>
       </button>
-
-      <button class="hover:text-white transition">
-        <i data-lucide="external-link" class="w-6 h-6"></i>
-      </button>
-      <button class="hover:text-white transition">
-        <i data-lucide="list-music" class="w-6 h-6"></i>
+      <button onclick="addToQueue(songs[currentSongIndex])" class="hover:text-white transition" title="Tambah ke Antrean">
+        <i data-lucide="list-plus" class="w-6 h-6"></i>
       </button>
     </div>
 
@@ -260,9 +297,12 @@
 
     let songs = [];
     let favorites = JSON.parse(localStorage.getItem('kyusic_favorites')) || [];
+    let queue = [];
     let currentSongIndex = 0;
     let isShuffle = false;
     let isRepeat = false;
+    let isMuted = false;
+    let isLyricsMode = false;
 
     const audio = document.getElementById('audio-element');
     const playerBar = document.getElementById('player-bar');
@@ -275,7 +315,6 @@
     const totalTimeEl = document.getElementById('total-time');
     const playingIndicator = document.getElementById('playing-indicator');
 
-    // Full Player Modal Elements
     const fullPlayerModal = document.getElementById('full-player-modal');
     const fullPlayBtn = document.getElementById('full-play-btn');
     const fullPlayIcon = document.getElementById('full-play-icon');
@@ -290,6 +329,15 @@
       } catch (error) {
         console.error("Gagal membaca file songs.json:", error);
       }
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toast-message').textContent = msg;
+      toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-[-10px]');
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-[-10px]');
+      }, 2500);
     }
 
     function createCardHTML(song, index) {
@@ -309,8 +357,7 @@
 
     function renderAllGrids() {
       const popularGrid = document.getElementById('song-grid-popular');
-      const popularSongs = songs.filter(s => s.popular);
-      popularGrid.innerHTML = popularSongs.map(s => createCardHTML(s, songs.indexOf(s))).join('');
+      popularGrid.innerHTML = songs.filter(s => s.popular).map(s => createCardHTML(s, songs.indexOf(s))).join('');
 
       const allGrid = document.getElementById('song-grid-all');
       allGrid.innerHTML = songs.map((s, i) => createCardHTML(s, i)).join('');
@@ -334,41 +381,90 @@
       lucide.createIcons();
     }
 
-    // Modal Control Functions
-    function openFullPlayer() {
-      fullPlayerModal.classList.remove('translate-y-full');
+    function openFullPlayer() { fullPlayerModal.classList.remove('translate-y-full'); }
+    function closeFullPlayer() { fullPlayerModal.classList.add('translate-y-full'); }
+
+    function toggleLyricsMode() {
+      isLyricsMode = !isLyricsMode;
+      const coverView = document.getElementById('modal-cover-view');
+      const lyricsView = document.getElementById('modal-lyrics-view');
+
+      if (isLyricsMode) {
+        coverView.classList.add('hidden');
+        lyricsView.classList.remove('hidden');
+        const lyrics = songs[currentSongIndex]?.lyrics || "Lirik belum tersedia untuk lagu ini.";
+        document.getElementById('lyrics-text-content').innerHTML = lyrics.replace(/\n/g, '<br>');
+      } else {
+        lyricsView.classList.add('hidden');
+        coverView.classList.remove('hidden');
+      }
     }
 
-    function closeFullPlayer() {
-      fullPlayerModal.classList.add('translate-y-full');
+    function addToQueue(song) {
+      if (!song) return;
+      queue.push(song);
+      renderQueueUI();
+      showToast(`" ${song.title} " dimasukkan ke antrean!`);
     }
 
-    // Player Core Logic
+    function renderQueueUI() {
+      const container = document.getElementById('queue-list-container');
+      if (queue.length === 0) {
+        container.innerHTML = `<p class="text-gray-500 text-center py-4">Antrean masih kosong.</p>`;
+        return;
+      }
+
+      container.innerHTML = queue.map((song, idx) => `
+        <div class="flex items-center justify-between bg-[#1e1e1e] p-2 rounded-lg gap-2">
+          <div class="flex items-center gap-2 truncate">
+            <img src="${song.cover}" class="w-8 h-8 rounded object-cover">
+            <div class="truncate">
+              <p class="font-bold text-white truncate">${song.title}</p>
+              <p class="text-[10px] text-gray-400 truncate">${song.artist}</p>
+            </div>
+          </div>
+          <button onclick="removeFromQueue(${idx})" class="text-gray-400 hover:text-red-400 p-1"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>
+        </div>
+      `).join('');
+      lucide.createIcons();
+    }
+
+    function removeFromQueue(index) {
+      queue.splice(index, 1);
+      renderQueueUI();
+    }
+
+    function clearQueue() {
+      queue = [];
+      renderQueueUI();
+      showToast('Antrean lagu dibersihkan.');
+    }
+
     function loadSong(song) {
       if (!song) return;
 
-      // Update Mini Player
       document.getElementById('player-title').textContent = song.title;
       document.getElementById('player-artist').textContent = song.artist;
       document.getElementById('player-cover').src = song.cover;
 
-      // Update Full Screen Player Modal
       document.getElementById('full-title').textContent = song.title;
       document.getElementById('full-artist').textContent = song.artist;
       document.getElementById('full-cover').src = song.cover;
 
-      // Cek Status Offline/Downloaded untuk Tombol Hapus Sampah
       const deleteBtn = document.getElementById('full-delete-btn');
       if (song.isOffline) {
         deleteBtn.className = "text-gray-300 hover:text-red-500 cursor-pointer transition";
-        deleteBtn.title = "Hapus lagu dari penyimpanan offline";
       } else {
         deleteBtn.className = "text-gray-600 cursor-not-allowed transition";
-        deleteBtn.title = "Lagu streaming tidak dapat dihapus";
       }
 
       audio.src = song.src;
       updateLikeButtonUI();
+
+      if (isLyricsMode) {
+        const lyrics = song.lyrics || "Lirik belum tersedia untuk lagu ini.";
+        document.getElementById('lyrics-text-content').innerHTML = lyrics.replace(/\n/g, '<br>');
+      }
     }
 
     function playSong(index) {
@@ -406,9 +502,18 @@
     document.getElementById('full-prev-btn').addEventListener('click', playPrevSong);
 
     function playNextSong() {
-      if (songs.length === 0) return;
-      currentSongIndex = isShuffle ? Math.floor(Math.random() * songs.length) : (currentSongIndex + 1) % songs.length;
-      loadSong(songs[currentSongIndex]);
+      if (queue.length > 0) {
+        const nextSong = queue.shift();
+        renderQueueUI();
+        currentSongIndex = songs.indexOf(nextSong);
+        loadSong(nextSong);
+      } else if (isShuffle) {
+        currentSongIndex = Math.floor(Math.random() * songs.length);
+        loadSong(songs[currentSongIndex]);
+      } else {
+        currentSongIndex = (currentSongIndex + 1) % songs.length;
+        loadSong(songs[currentSongIndex]);
+      }
       audio.play();
       playIcon.setAttribute('data-lucide', 'pause');
       fullPlayIcon.setAttribute('data-lucide', 'pause');
@@ -416,7 +521,6 @@
     }
 
     function playPrevSong() {
-      if (songs.length === 0) return;
       currentSongIndex = (currentSongIndex - 1 + songs.length) % songs.length;
       loadSong(songs[currentSongIndex]);
       audio.play();
@@ -425,17 +529,31 @@
       lucide.createIcons();
     }
 
-    // Fungsi Hapus Lagu Offline
+    audio.addEventListener('ended', () => {
+      if (isRepeat) {
+        audio.currentTime = 0;
+        audio.play();
+      } else {
+        playNextSong();
+      }
+    });
+
+    function toggleMute() {
+      isMuted = !isMuted;
+      audio.muted = isMuted;
+      document.getElementById('volume-icon').setAttribute('data-lucide', isMuted ? 'volume-x' : 'volume-2');
+      lucide.createIcons();
+    }
+
     function handleDeleteOfflineSong() {
       const currentSong = songs[currentSongIndex];
       if (currentSong && currentSong.isOffline) {
-        if (confirm(`Apakah kamu yakin ingin menghapus lagu "${currentSong.title}" dari penyimpanan offline?`)) {
-          alert(`Lagu ${currentSong.title} berhasil dihapus!`);
+        if (confirm(`Hapus lagu "${currentSong.title}" dari offline?`)) {
+          showToast(`Lagu ${currentSong.title} dihapus dari offline`);
         }
       }
     }
 
-    // Sync Audio Progress
     audio.addEventListener('timeupdate', () => {
       if (audio.duration) {
         const percent = (audio.currentTime / audio.duration) * 100;
@@ -457,16 +575,9 @@
       }
     });
 
-    progressBar.addEventListener('input', syncAudioSeek);
-    fullProgressBar.addEventListener('input', syncAudioSeek);
+    progressBar.addEventListener('input', (e) => audio.currentTime = (e.target.value / 100) * audio.duration);
+    fullProgressBar.addEventListener('input', (e) => audio.currentTime = (e.target.value / 100) * audio.duration);
 
-    function syncAudioSeek(e) {
-      if (audio.duration) {
-        audio.currentTime = (e.target.value / 100) * audio.duration;
-      }
-    }
-
-    // Volume Sync
     const fullVolumeBar = document.getElementById('full-volume-bar');
     const volumeBar = document.getElementById('volume-bar');
 
@@ -480,15 +591,16 @@
       volumeBar.value = e.target.value;
     });
 
-    // Favorites Logic
     function toggleLikeCurrentSong() {
       const currentSong = songs[currentSongIndex];
       if (!currentSong) return;
 
       if (favorites.includes(currentSong.id)) {
         favorites = favorites.filter(id => id !== currentSong.id);
+        showToast('Dihapus dari Lagu Disukai');
       } else {
         favorites.push(currentSong.id);
+        showToast('Ditambahkan ke Lagu Disukai ❤️');
       }
 
       localStorage.setItem('kyusic_favorites', JSON.stringify(favorites));
@@ -513,18 +625,14 @@
     }
 
     function updateFavoritesSidebar() {
-      const list = document.getElementById('favorites-list-sidebar');
+      const list = document.getElementById('playlist-list-sidebar');
       const liked = songs.filter(s => favorites.includes(s.id));
-      
-      if (liked.length === 0) {
-        list.innerHTML = `<li class="px-2 py-1 text-xs text-gray-600">Belum ada lagu disukai</li>`;
-      } else {
-        list.innerHTML = liked.map(s => `
-          <li onclick="playSong(${songs.indexOf(s)})" class="hover:text-white cursor-pointer truncate px-2 py-1.5 rounded-md hover:bg-[#1f1f1f] transition">
-            ${s.title}
-          </li>
-        `).join('');
-      }
+      list.innerHTML = `
+        <li onclick="switchTab('library')" class="hover:text-white cursor-pointer truncate px-2 py-1.5 rounded-md hover:bg-[#1f1f1f] transition flex items-center gap-2">
+          <i data-lucide="heart" class="w-4 h-4 text-red-500 fill-red-500"></i> Lagu Disukai (${liked.length})
+        </li>
+      `;
+      lucide.createIcons();
     }
 
     function toggleShuffle() {
@@ -542,12 +650,30 @@
     function switchTab(tabName) {
       document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
       document.getElementById(`tab-${tabName}`).classList.remove('hidden');
-
-      const newPath = tabName === 'home' ? '/' : `/${tabName}`;
-      window.history.pushState({ tab: tabName }, '', newPath);
     }
 
-    // Load Initial Database
+    function handleSearch() {
+      const query = document.getElementById('global-search-input').value.toLowerCase();
+      switchTab('search');
+
+      const filtered = songs.filter(s => 
+        s.title.toLowerCase().includes(query) || 
+        s.artist.toLowerCase().includes(query) ||
+        (s.album && s.album.toLowerCase().includes(query))
+      );
+
+      const searchGrid = document.getElementById('song-grid-search');
+      searchGrid.innerHTML = filtered.map(s => createCardHTML(s, songs.indexOf(s))).join('');
+      lucide.createIcons();
+    }
+
+    function createNewPlaylist() {
+      const name = prompt("Masukkan nama playlist baru:");
+      if (name) {
+        showToast(`Playlist "${name}" berhasil dibuat!`);
+      }
+    }
+
     loadSongsDatabase();
   </script>
 </body>
